@@ -80,11 +80,11 @@ impl Binary for CertificateSigningRequest {
 		Ok(())
 	}
 }
-impl TryFrom<(&CertificateSigningRequestParams<'_>, &KeyPair)> for CertificateSigningRequest {
+impl TryFrom<(&CertificateParams, &KeyPair)> for CertificateSigningRequest {
 	type Error = crate::Error;
 
-	fn try_from(value: (&CertificateSigningRequestParams, &KeyPair)) -> Result<Self, Self::Error> {
-		value.0.params.serialize_request(value.1)
+	fn try_from(value: (&CertificateParams, &KeyPair)) -> Result<Self, Self::Error> {
+		value.0.serialize_request(value.1)
 	}
 }
 impl From<CertificateSigningRequest> for CertificateSigningRequestDer<'static> {

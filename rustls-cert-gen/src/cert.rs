@@ -128,7 +128,7 @@ impl Ca {
 	/// Self-sign and serialize
 	pub fn serialize_pem(&self) -> PemCertifiedKey {
 		PemCertifiedKey {
-			cert_pem: self.cert.pem(),
+			cert_pem: format!("{}",self.cert),
 			private_key_pem: self.key_pair.serialize_pem(),
 		}
 	}
@@ -149,7 +149,7 @@ impl EndEntity {
 	/// Sign with `signer` and serialize.
 	pub fn serialize_pem(&self) -> PemCertifiedKey {
 		PemCertifiedKey {
-			cert_pem: self.cert.pem(),
+			cert_pem: format!("{}",self.cert),
 			private_key_pem: self.key_pair.serialize_pem(),
 		}
 	}
