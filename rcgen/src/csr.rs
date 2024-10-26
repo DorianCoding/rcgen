@@ -1,4 +1,7 @@
-use std::{fmt::{Binary, Display}, hash::Hash};
+use std::{
+	fmt::{Binary, Display},
+	hash::Hash,
+};
 
 #[cfg(feature = "pem")]
 use pem::Pem;
@@ -29,7 +32,7 @@ impl<'a> PublicKey<'a> {
 	pub fn fromkey(key: &'a impl PublicKeyData) -> Self {
 		PublicKey {
 			raw: key.der_bytes().to_vec(),
-			alg: &key.algorithm()
+			alg: &key.algorithm(),
 		}
 	}
 }
@@ -69,14 +72,14 @@ impl CertificateSigningRequest {
 impl Display for CertificateSigningRequest {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		let p = Pem::new("CERTIFICATE REQUEST", &*self.der);
-		write!(f,"{}",pem::encode_config(&p, ENCODE_CONFIG))
+		write!(f, "{}", pem::encode_config(&p, ENCODE_CONFIG))
 	}
 }
 impl Binary for CertificateSigningRequest {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		for byte in self.der.as_ref() {
-            std::fmt::Binary::fmt(byte, f)?;
-        }
+			std::fmt::Binary::fmt(byte, f)?;
+		}
 		Ok(())
 	}
 }
@@ -93,11 +96,17 @@ pub struct CertificateSigningRequestParams<'a> {
 	/// Public key to include in the certificate signing request.
 	pub public_key: PublicKey<'a>,
 }
-impl<'a, T> From<(CertificateParams, &'a T)> for CertificateSigningRequestParams<'a> where T: PublicKeyData {
-	fn from(value: (crate::certificate::CertificateParams, &'a T)) -> Self {
+impl<'a> CertificateSigningRequestParams<'a> {
+	/// Create a RequestParams from certificate and keypair
+	pub fn fromcertandkey(
+		value: (
+			crate::certificate::CertificateParams,
+			&'a impl PublicKeyData,
+		),
+	) -> Self {
 		Self {
 			params: value.0,
-			public_key: PublicKey::fromkey(value.1)
+			public_key: PublicKey::fromkey(value.1),
 		}
 	}
 }
