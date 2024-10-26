@@ -1,3 +1,4 @@
+use std::fmt::{Binary, Display};
 use std::net::IpAddr;
 use std::str::FromStr;
 
@@ -53,7 +54,20 @@ impl Certificate {
 		pem::encode_config(&Pem::new("CERTIFICATE", self.der().to_vec()), ENCODE_CONFIG)
 	}
 }
-
+#[cfg(feature = "pem")]
+impl Display for Certificate {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f,"{}",self.pem())
+	}
+}
+impl Binary for Certificate {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		for byte in self.der.as_ref() {
+            std::fmt::Binary::fmt(byte, f)?;
+        }
+		Ok(())
+	}
+}
 impl From<Certificate> for CertificateDer<'static> {
 	fn from(cert: Certificate) -> Self {
 		cert.der
@@ -854,6 +868,22 @@ impl CustomExtension {
 			oid: oid::PE_ACME.to_owned(),
 			critical: true,
 			content,
+		}
+	}
+	/// Add OCSP to certificate
+	pub fn add_ocsp_extension(content: Vec<u8>) -> Self {
+		Self {
+			oid: vec![1,3,6,1,5,5,7,48,1],
+			critical: false,
+			content
+		}
+	}
+	/// Add CA issuers to certificate
+	pub fn add_ca_issuer_extension(content: Vec<u8>) -> Self {
+		Self {
+			oid: vec![1,3,6,1,5,5,7,48,2],
+			critical: false,
+			content
 		}
 	}
 	/// Create a new custom extension with the specified content

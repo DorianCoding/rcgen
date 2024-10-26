@@ -1,4 +1,4 @@
-use std::hash::Hash;
+use std::{fmt::{Binary, Display}, hash::Hash};
 
 #[cfg(feature = "pem")]
 use pem::Pem;
@@ -15,19 +15,26 @@ use crate::{DistinguishedName, SanType};
 
 /// A public key, extracted from a CSR
 #[derive(Debug, PartialEq, Eq, Hash)]
-pub struct PublicKey {
+pub struct PublicKey<'T> {
 	raw: Vec<u8>,
-	alg: &'static SignatureAlgorithm,
+	alg: &'T SignatureAlgorithm,
 }
 
-impl PublicKey {
+impl<'a> PublicKey<'a> {
 	/// The algorithm used to generate the public key and sign the CSR.
 	pub fn algorithm(&self) -> &SignatureAlgorithm {
 		self.alg
 	}
+	/// Get public key from other keys created
+	pub fn fromkey(key: &'a impl PublicKeyData) -> Self {
+		PublicKey {
+			raw: key.der_bytes().to_vec(),
+			alg: &key.algorithm()
+		}
+	}
 }
 
-impl PublicKeyData for PublicKey {
+impl PublicKeyData for PublicKey<'_> {
 	fn der_bytes(&self) -> &[u8] {
 		&self.raw
 	}
@@ -58,7 +65,28 @@ impl CertificateSigningRequest {
 		&self.der
 	}
 }
+#[cfg(feature = "pem")]
+impl Display for CertificateSigningRequest {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		let p = Pem::new("CERTIFICATE REQUEST", &*self.der);
+		write!(f,"{}",pem::encode_config(&p, ENCODE_CONFIG))
+	}
+}
+impl Binary for CertificateSigningRequest {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		for byte in self.der.as_ref() {
+            std::fmt::Binary::fmt(byte, f)?;
+        }
+		Ok(())
+	}
+}
+impl TryFrom<(&CertificateSigningRequestParams<'_>, &KeyPair)> for CertificateSigningRequest {
+	type Error = crate::Error;
 
+	fn try_from(value: (&CertificateSigningRequestParams, &KeyPair)) -> Result<Self, Self::Error> {
+		value.0.params.serialize_request(value.1)
+	}
+}
 impl From<CertificateSigningRequest> for CertificateSigningRequestDer<'static> {
 	fn from(csr: CertificateSigningRequest) -> Self {
 		csr.der
@@ -66,14 +94,14 @@ impl From<CertificateSigningRequest> for CertificateSigningRequestDer<'static> {
 }
 
 /// Parameters for a certificate signing request
-pub struct CertificateSigningRequestParams {
+pub struct CertificateSigningRequestParams<'a> {
 	/// Parameters for the certificate to be signed.
 	pub params: CertificateParams,
 	/// Public key to include in the certificate signing request.
-	pub public_key: PublicKey,
+	pub public_key: PublicKey<'a>,
 }
 
-impl CertificateSigningRequestParams {
+impl CertificateSigningRequestParams<'_> {
 	/// Parse a certificate signing request from the ASCII PEM format
 	///
 	/// See [`from_der`](Self::from_der) for more details.
