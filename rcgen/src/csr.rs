@@ -15,9 +15,9 @@ use crate::{DistinguishedName, SanType};
 
 /// A public key, extracted from a CSR
 #[derive(Debug, PartialEq, Eq, Hash)]
-pub struct PublicKey<'T> {
+pub struct PublicKey<'t> {
 	raw: Vec<u8>,
-	alg: &'T SignatureAlgorithm,
+	alg: &'t SignatureAlgorithm,
 }
 
 impl<'a> PublicKey<'a> {
