@@ -80,13 +80,6 @@ impl Binary for CertificateSigningRequest {
 		Ok(())
 	}
 }
-impl TryFrom<(&CertificateParams, &KeyPair)> for CertificateSigningRequest {
-	type Error = crate::Error;
-
-	fn try_from(value: (&CertificateParams, &KeyPair)) -> Result<Self, Self::Error> {
-		value.0.serialize_request(value.1)
-	}
-}
 impl From<CertificateSigningRequest> for CertificateSigningRequestDer<'static> {
 	fn from(csr: CertificateSigningRequest) -> Self {
 		csr.der
@@ -100,7 +93,14 @@ pub struct CertificateSigningRequestParams<'a> {
 	/// Public key to include in the certificate signing request.
 	pub public_key: PublicKey<'a>,
 }
-
+impl<'a, T> From<(CertificateParams, &'a T)> for CertificateSigningRequestParams<'a> where T: PublicKeyData {
+	fn from(value: (crate::certificate::CertificateParams, &'a T)) -> Self {
+		Self {
+			params: value.0,
+			public_key: PublicKey::fromkey(value.1)
+		}
+	}
+}
 impl CertificateSigningRequestParams<'_> {
 	/// Parse a certificate signing request from the ASCII PEM format
 	///
@@ -110,7 +110,6 @@ impl CertificateSigningRequestParams<'_> {
 		let csr = pem::parse(pem_str).or(Err(Error::CouldNotParseCertificationRequest))?;
 		Self::from_der(&csr.contents().into())
 	}
-
 	/// Parse a certificate signing request from DER-encoded bytes
 	///
 	/// Currently, this only supports the `Subject Alternative Name` extension.

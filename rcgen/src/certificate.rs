@@ -1161,7 +1161,22 @@ pub fn date_time_ymd(year: i32, month: u8, day: u8) -> OffsetDateTime {
 	);
 	primitive_dt.assume_utc()
 }
-
+/// Helper to obtain an `OffsetDateTime` from year, month, day, hour, minute and second values
+///
+/// The year, month, day, hour, minute and second values are assumed to be in UTC.
+///
+/// This helper function serves two purposes: first, so that you don't
+/// have to import the time crate yourself in order to specify date
+/// information, second so that users don't have to type unproportionately
+/// long code just to generate an instance of [`OffsetDateTime`].
+pub fn date_time_ymd_hms(year: i32, month: u8, day: u8, hour: u8, min: u8, sec: u8) -> OffsetDateTime {
+	let month = Month::try_from(month).expect("out-of-range month");
+	let primitive_dt = PrimitiveDateTime::new(
+		Date::from_calendar_date(year, month, day).expect("invalid or out-of-range date"),
+		Time::from_hms(hour, min, sec).expect("invalid or out-of-range time"),
+	);
+	primitive_dt.assume_utc()
+}
 /// Whether the certificate is allowed to sign other certificates
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum IsCa {

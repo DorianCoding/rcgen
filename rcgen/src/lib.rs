@@ -49,7 +49,7 @@ use yasna::DERWriter;
 use yasna::Tag;
 
 pub use certificate::{
-	date_time_ymd, BasicConstraints, Certificate, CertificateParams, CidrSubnet, CustomExtension,
+	date_time_ymd_hms,date_time_ymd, BasicConstraints, Certificate, CertificateParams, CidrSubnet, CustomExtension,
 	DnType, ExtendedKeyUsagePurpose, GeneralSubtree, IsCa, NameConstraints,
 };
 pub use crl::{
