@@ -98,19 +98,12 @@ pub struct CertificateSigningRequestParams<'a> {
 }
 impl<'a> CertificateSigningRequestParams<'a> {
 	/// Create a RequestParams from certificate and keypair
-	pub fn fromcertandkey(
-		value: (
-			crate::certificate::CertificateParams,
-			&'a impl PublicKeyData,
-		),
-	) -> Self {
+	pub fn fromcertandkey(params: CertificateParams, key: &'a impl PublicKeyData) -> Self {
 		Self {
-			params: value.0,
-			public_key: PublicKey::fromkey(value.1),
+			params,
+			public_key: PublicKey::fromkey(key),
 		}
 	}
-}
-impl CertificateSigningRequestParams<'_> {
 	/// Parse a certificate signing request from the ASCII PEM format
 	///
 	/// See [`from_der`](Self::from_der) for more details.
